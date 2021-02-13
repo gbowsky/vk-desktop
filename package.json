@@ -3,10 +3,10 @@
   "version": "0.3.0-alpha.4",
   "description": "Клиент ВКонтакте",
   "scripts": {
-    "dev": "webpack-dev-server --mode development --hot",
+    "dev": "vite",
     "build": "yarn run dist && yarn run pack",
     "lint": "eslint src --ext .vue,.js && stylelint src/**/*.{vue,css}",
-    "dist": "webpack --mode production",
+    "dist": "vite build",
     "pack": "electron-builder --config .build/config.json",
     "win-setup": "yarn win-setup64 && yarn win-setup32",
     "win-setup64": "innosetup-compiler .build/config-x64.iss --verbose",
@@ -15,31 +15,23 @@
   "repository": "https://github.com/danyadev/vk-desktop",
   "author": "danyadev <danyadev@mail.ru>",
   "license": "Apache-2.0",
+  "dependencies": {
+    "lottie-web": "5.7.6",
+    "vue": "3.0.5",
+    "vue-router": "4.0.3",
+    "vuex": "4.0.0"
+  },
   "devDependencies": {
-    "@vue/compiler-dom": "3.0.5",
+    "@vitejs/plugin-vue": "1.1.4",
     "@vue/compiler-sfc": "3.0.5",
-    "copy-webpack-plugin": "6.4.1",
-    "css-loader": "5.0.2",
     "electron": "8.5.5",
     "electron-builder": "22.9.1",
-    "eslint": "7.19.0",
-    "eslint-import-resolver-webpack": "0.13.0",
+    "eslint": "7.20.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-vue": "7.5.0",
-    "file-loader": "6.2.0",
     "innosetup-compiler": "5.6.1",
-    "lottie-web": "5.7.6",
-    "mini-css-extract-plugin": "1.3.6",
     "stylelint": "13.10.0",
     "stylelint-config-standard": "20.0.0",
-    "terser-webpack-plugin": "4.2.3",
-    "vue": "3.0.5",
-    "vue-loader": "16.1.2",
-    "vue-router": "4.0.3",
-    "vue-svg-loader": "danyadev/vue-svg-loader#next",
-    "vuex": "4.0.0",
-    "webpack": "4.46.0",
-    "webpack-cli": "3.3.12",
-    "webpack-dev-server": "3.11.2"
+    "vite": "2.0.0-beta.69"
   }
 }
