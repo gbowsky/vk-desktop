@@ -59,8 +59,8 @@ app.once('ready', () => {
 
   win.loadURL(
     process.argv.includes('dev-mode')
-      ? 'http://localhost:9973/dist/index.html'
-      : `file://${__dirname}/dist/index.html`
+      ? 'http://localhost:9973/index.html'
+      : `file://${__dirname}/index.html`
   );
 });
 
