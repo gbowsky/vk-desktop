@@ -16,24 +16,24 @@
 import { toRefs } from 'vue';
 import { modalsState, closeModal } from 'js/modals';
 
-const modalComponents = {};
-const modalNames = [
-  'BlockedAccount',
-  'Captcha',
-  'ClearHistory',
-  'DeleteMessages',
-  'ErrorApi',
-  'Logout',
-  // 'MediaViewer',
-  'Settings'
-];
-
-for (const name of modalNames) {
-  modalComponents[name] = require(`./modals/${name}.vue`).default;
-}
+import BlockedAccount from './modals/BlockedAccount.vue';
+import Captcha from './modals/Captcha.vue';
+import ClearHistory from './modals/ClearHistory.vue';
+import DeleteMessages from './modals/DeleteMessages.vue';
+import ErrorApi from './modals/ErrorApi.vue';
+import Logout from './modals/Logout.vue';
+import Settings from './modals/Settings.vue';
 
 export default {
-  components: modalComponents,
+  components: {
+    BlockedAccount,
+    Captcha,
+    ClearHistory,
+    DeleteMessages,
+    ErrorApi,
+    Logout,
+    Settings
+  },
 
   setup() {
     function onClickToBg({ target }) {

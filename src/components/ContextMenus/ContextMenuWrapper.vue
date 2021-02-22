@@ -12,18 +12,16 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { capitalize } from 'js/utils';
 
-const getComponentName = (name) => capitalize(name) + 'ContextMenu';
+import PeerContextMenu from './PeerContextMenu.vue';
+import MessageContextMenu from './MessageContextMenu.vue';
+import AccountContextMenu from './AccountContextMenu.vue';
 
 export default {
-  components: [
-    'peer',
-    'message',
-    'account'
-  ].reduce((components, rawName) => {
-    const name = getComponentName(rawName);
-    components[name] = require(`./${name}.vue`).default;
-    return components;
-  }, {}),
+  components: {
+    PeerContextMenu,
+    MessageContextMenu,
+    AccountContextMenu
+  },
 
   setup() {
     const menu = ref(null);
@@ -54,7 +52,7 @@ export default {
 
         if (element) {
           menu.value = {
-            name: getComponentName(element.dataset.contextMenu),
+            name: capitalize(element.dataset.contextMenu) + 'ContextMenu',
             data: {
               ...element.dataset,
               event

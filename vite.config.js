@@ -17,6 +17,10 @@ export default ({ command, mode }) => ({
     __VUE_PROD_DEVTOOLS__: false
   },
 
+  optimizeDeps: {
+    exclude: ['electron']
+  },
+
   resolve: {
     mainFields: ['module'],
     extensions: ['.js'],

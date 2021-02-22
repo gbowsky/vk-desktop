@@ -1,8 +1,10 @@
-import electron from 'electron';
+// import electron from 'electron';
 import { VKDesktopUserAgent, AndroidUserAgent, toUrlParams } from './utils';
 import { openModal } from './modals';
 import store from './store';
 import request from './request';
+
+const electron = require('electron');
 
 export const version = '5.142';
 

@@ -1,7 +1,10 @@
-import { promises as dns } from 'dns';
-import https from 'https';
+// import { promises as dns } from 'dns';
+// import https from 'https';
 import { timer, isObject } from './utils';
 import debug from './debug';
+
+const { promises: dns } = require('dns');
+const https = require('https');
 
 // Возможные варианты передачи параметров:
 // 1. request(paramsOrUrl, options?)

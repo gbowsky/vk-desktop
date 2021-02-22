@@ -15,12 +15,14 @@
 </template>
 
 <script>
-import electron from 'electron';
+// import electron from 'electron';
 import { logout } from 'js/utils';
 import { closeModal } from 'js/modals';
 
 import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
+
+const electron = require('electron');
 
 export default {
   props: ['id', 'fromAuth'],

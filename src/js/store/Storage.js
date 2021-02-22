@@ -1,4 +1,6 @@
-import electron from 'electron';
+// import electron from 'electron';
+
+const electron = require('electron');
 
 // Здесь нельзя импортировать currentWindow из js/utils, потому что
 // в том файле импортируется этот файл

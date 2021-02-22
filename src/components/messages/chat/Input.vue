@@ -83,7 +83,7 @@
 
 <script>
 import { reactive, computed, toRefs, onActivated, onDeactivated, watch } from 'vue';
-import electron from 'electron';
+// import electron from 'electron';
 import { throttle, escape, eventBus } from 'js/utils';
 import vkapi from 'js/vkapi';
 import store from 'js/store';
@@ -96,6 +96,8 @@ import Icon from '../../UI/Icon.vue';
 import Ripple from '../../UI/Ripple.vue';
 import Keyboard from './Keyboard.vue';
 import Reply from './attachments/Reply.vue';
+
+const electron = require('electron');
 
 export default {
   props: ['peer_id', 'peer'],

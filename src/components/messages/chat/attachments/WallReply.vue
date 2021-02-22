@@ -13,8 +13,10 @@
 </template>
 
 <script>
-import electron from 'electron';
+// import electron from 'electron';
 import { parseAttachments } from 'js/messages';
+
+const electron = require('electron');
 
 export default {
   props: ['attach'],

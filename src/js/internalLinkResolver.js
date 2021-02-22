@@ -1,7 +1,9 @@
-import electron from 'electron';
+// import electron from 'electron';
 import vkapi from './vkapi';
 import store from './store';
 import router from './router';
+
+const electron = require('electron');
 
 function openChat(peer_id) {
   router.push(`/messages/${peer_id}`);

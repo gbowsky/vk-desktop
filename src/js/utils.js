@@ -1,13 +1,17 @@
-import { EventEmitter } from 'events';
+// import { EventEmitter } from 'events';
 import { reactive } from 'vue';
-import electron from 'electron';
-import os from 'os';
+// import electron from 'electron';
+// import os from 'os';
 import { version } from '../../package.json';
 import { usersStorage } from './store/Storage';
 import vkapi from './vkapi';
 import store from './store';
 import copyObject from './copyObject';
 import debug from './debug';
+
+const { EventEmitter } = require('events');
+const electron = require('electron');
+const os = require('os');
 
 debug(
   '[init] ' +

@@ -1,10 +1,15 @@
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import electron from 'electron';
+// import fs from 'fs';
+// import os from 'os';
+// import path from 'path';
+// import electron from 'electron';
 import request from './request';
 import store from './store';
 import getTranslate from './getTranslate';
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const electron = require('electron');
 
 const { app, dialog } = electron.remote;
 

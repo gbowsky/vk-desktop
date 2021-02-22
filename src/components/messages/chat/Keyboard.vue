@@ -49,7 +49,7 @@
 
 <script>
 import { reactive, computed, toRefs } from 'vue';
-import electron from 'electron';
+// import electron from 'electron';
 import { activeKeyboardCallbackButtons } from 'js/messages';
 import { addSnackbar } from 'js/snackbars';
 import vkapi from 'js/vkapi';
@@ -59,6 +59,8 @@ import Scrolly from '../../UI/Scrolly.vue';
 import Ripple from '../../UI/Ripple.vue';
 import VKText from '../../UI/VKText.vue';
 import Icon from '../../UI/Icon.vue';
+
+const electron = require('electron');
 
 const { shell } = electron.remote;
 

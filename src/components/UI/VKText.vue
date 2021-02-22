@@ -1,10 +1,12 @@
 <script>
 import { h, Fragment, computed } from 'vue';
-import electron from 'electron';
+// import electron from 'electron';
 import { createParser, unescape } from 'js/utils';
 import { emojiRegex, generateEmojiImageVNode } from 'js/emoji';
 import internalLinkResolver from 'js/internalLinkResolver';
 import domains from 'js/json/domains.json';
+
+const electron = require('electron');
 
 export default {
   props: {

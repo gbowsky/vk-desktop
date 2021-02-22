@@ -56,7 +56,7 @@
 
 <script>
 import { reactive, computed, toRefs } from 'vue';
-import electron from 'electron';
+// import electron from 'electron';
 import { eventBus } from 'js/utils';
 import { openModal } from 'js/modals';
 import { addSnackbar } from 'js/snackbars';
@@ -66,6 +66,8 @@ import getTranslate from 'js/getTranslate';
 
 import ContextMenu from './ContextMenu.vue';
 import Icon from '../UI/Icon.vue';
+
+const electron = require('electron');
 
 export default {
   props: ['event', 'peerId'],

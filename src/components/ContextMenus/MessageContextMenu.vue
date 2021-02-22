@@ -47,7 +47,7 @@
 
 <script>
 import { reactive, computed, toRefs, nextTick } from 'vue';
-import electron from 'electron';
+// import electron from 'electron';
 import { eventBus } from 'js/utils';
 import { deleteMessages } from 'js/messages';
 import { addSnackbar } from 'js/snackbars';
@@ -58,6 +58,8 @@ import getTranslate from 'js/getTranslate';
 
 import ContextMenu from './ContextMenu.vue';
 import Icon from '../UI/Icon.vue';
+
+const electron = require('electron');
 
 export default {
   props: ['event', 'id'],
