@@ -9,9 +9,7 @@
     <div
       ref="root"
       class="vue-recycle-scroller"
-      :class="{ ready, 'direction-vertical': true }"
     >
-      <!-- @scroll.passive="onScroll" -->
       <div
         ref="wrapper"
         :style="{ minHeight: totalSize + 'px' }"
@@ -20,7 +18,7 @@
         <div
           v-for="view of pool"
           :key="view.nr.id"
-          :style="ready ? { transform: `translateY(${view.position}px)` } : null"
+          :style="{ transform: `translateY(${view.position}px)` }"
           class="vue-recycle-scroller__item-view"
           :class="{ hover: hoverKey === view.nr.key }"
           @mouseenter="hoverKey = view.nr.key"
@@ -41,9 +39,8 @@
 
 <script>
 import { reactive } from 'vue';
-import { scrollParent } from './common';
 
-import ResizeObserver from './resizeObserver.vue';
+import ResizeObserver from './ResizeObserver.vue';
 import Scrolly from '../Scrolly.vue';
 
 let uid = 0;
@@ -109,14 +106,7 @@ export default {
     Scrolly
   },
 
-  emits: ['update', 'scroll'],
-
-  data: () => ({
-    pool: [],
-    totalSize: 0,
-    ready: false,
-    hoverKey: null
-  }),
+  emits: ['scroll'],
 
   created() {
     this.$_startIndex = 0;
@@ -127,14 +117,13 @@ export default {
     this.$_lastUpdateScrollPosition = 0;
   },
 
-  setup(props) {
+  setup() {
     const state = reactive({
       root: null,
       scrollyRef: null,
 
       pool: [],
       totalSize: 0,
-      ready: false,
       hoverKey: null
     });
 
@@ -147,28 +136,27 @@ export default {
         const sizes = {
           '-1': { accumulator: 0 }
         };
-        const { items } = this;
-        const field = this.sizeField;
-        const { minItemSize } = this;
+        const { items, minItemSize, sizeField } = this;
         let computedMinSize = 10000;
         let accumulator = 0;
         let current;
+
         for (let i = 0, l = items.length; i < l; i++) {
-          current = items[i][field] || minItemSize;
+          current = items[i][sizeField] || minItemSize;
+
           if (current < computedMinSize) {
             computedMinSize = current;
           }
+
           accumulator += current;
           sizes[i] = { accumulator, size: current };
         }
+
         this.$_computedMinItemSize = computedMinSize;
         return sizes;
       }
-      return [];
-    },
 
-    simpleArray() {
-      return this.items.length && typeof this.items[0] !== 'object';
+      return [];
     }
   },
 
@@ -186,15 +174,7 @@ export default {
   },
 
   mounted() {
-    this.removeListeners();
-    this.$nextTick(() => {
-      this.updateVisibleItems(true);
-      this.ready = true;
-    });
-  },
-
-  beforeUnmount() {
-    this.removeListeners();
+    this.updateVisibleItems(true);
   },
 
   methods: {
@@ -231,13 +211,12 @@ export default {
     },
 
     handleResize() {
-      if (this.ready) {
-        this.updateVisibleItems(false);
-      }
+      this.updateVisibleItems(false);
     },
 
     onScroll(event) {
       this.$emit('scroll', event);
+
       if (!this.$_scrollDirty) {
         this.$_scrollDirty = true;
         requestAnimationFrame(() => {
@@ -248,41 +227,33 @@ export default {
           // When non continous scrolling is ending, we force a refresh
           if (!continuous) {
             clearTimeout(this.$_refreshTimout);
-            this.$_refreshTimout = setTimeout(this.onScroll, 100);
+            this.$_refreshTimout = setTimeout(this.onScroll.bind(this, event), 100);
           }
         });
       }
     },
 
     updateVisibleItems(checkItem, checkPositionDiff = false) {
-      const { itemSize } = this;
+      const { itemSize, typeField, keyField, items, sizes, pool } = this;
       const minItemSize = this.$_computedMinItemSize;
-      const { typeField } = this;
-      const keyField = this.simpleArray ? null : this.keyField;
-      const { items } = this;
       const count = items.length;
-      const { sizes } = this;
       const views = this.$_views;
       const unusedViews = this.$_unusedViews;
-      const { pool } = this;
-      let startIndex; let endIndex;
-      let totalSize;
+      let startIndex = 0;
+      let endIndex = 0;
 
-      if (!count) {
-        startIndex = endIndex = totalSize = 0;
-      } else {
+      if (count) {
         const scroll = this.getScroll();
 
         // Skip update if user hasn't scrolled enough
         if (checkPositionDiff) {
-          let positionDiff = scroll.start - this.$_lastUpdateScrollPosition;
-          if (positionDiff < 0) positionDiff = -positionDiff;
+          const positionDiff = Math.abs(scroll.start - this.$_lastUpdateScrollPosition);
+
           if ((itemSize === null && positionDiff < minItemSize) || positionDiff < itemSize) {
-            return {
-              continuous: true
-            };
+            return { continuous: true };
           }
         }
+
         this.$_lastUpdateScrollPosition = scroll.start;
 
         const { buffer } = this;
@@ -312,10 +283,15 @@ export default {
           startIndex = i;
 
           // For container style
-          totalSize = sizes[count - 1].accumulator;
+          this.totalSize = sizes[count - 1].accumulator;
 
           // Searching for endIndex
-          for (endIndex = i; endIndex < count && sizes[endIndex].accumulator < scroll.end; endIndex++);
+          for (
+            endIndex = i;
+            endIndex < count && sizes[endIndex].accumulator < scroll.end;
+            endIndex++
+          );
+
           if (endIndex === -1) {
             endIndex = items.length - 1;
           } else {
@@ -332,15 +308,12 @@ export default {
           startIndex < 0 && (startIndex = 0);
           endIndex > count && (endIndex = count);
 
-          totalSize = count * itemSize;
+          this.totalSize = count * itemSize;
         }
       }
 
-      this.totalSize = totalSize;
-
-      let view;
-
       const continuous = startIndex <= this.$_endIndex && endIndex >= this.$_startIndex;
+      let view;
 
       if (this.$_continuous !== continuous) {
         if (continuous) {
@@ -351,6 +324,7 @@ export default {
             this.unuseView(view);
           }
         }
+
         this.$_continuous = continuous;
       } else if (continuous) {
         for (let i = 0, l = pool.length; i < l; i++) {
@@ -379,25 +353,28 @@ export default {
 
       const unusedIndex = continuous ? null : new Map();
 
-      let item; let type; let unusedPool;
-      let v;
       for (let i = startIndex; i < endIndex; i++) {
-        item = items[i];
+        const item = items[i];
         const key = keyField ? getValFromKey(item, keyField) : item;
+
         if (key == null) {
           throw new Error(`Key is ${key} on item (keyField is '${keyField}')`);
         }
+
         view = views.get(key);
 
         if (!itemSize && !sizes[i].size) {
-          if (view) this.unuseView(view);
+          if (view) {
+            this.unuseView(view);
+          }
+
           continue;
         }
 
         // No view assigned to item
         if (!view) {
-          type = item[typeField];
-          unusedPool = unusedViews.get(type);
+          const type = item[typeField];
+          let unusedPool = unusedViews.get(type);
 
           if (continuous) {
             // Reuse existing view
@@ -415,7 +392,7 @@ export default {
             // Use existing view
             // We don't care if they are already used
             // because we are not in continous scrolling
-            v = unusedIndex.get(type) || 0;
+            const v = unusedIndex.get(type) || 0;
 
             if (!unusedPool || v >= unusedPool.length) {
               view = this.addView(pool, i, item, key, type);
@@ -430,7 +407,6 @@ export default {
             view.nr.key = key;
             view.nr.type = type;
             unusedIndex.set(type, v + 1);
-            v++;
           }
           views.set(key, view);
         } else {
@@ -454,19 +430,7 @@ export default {
       clearTimeout(this.$_sortTimer);
       this.$_sortTimer = setTimeout(this.sortViews, 300);
 
-      return {
-        continuous
-      };
-    },
-
-    getListenerTarget() {
-      let target = scrollParent(this.$el);
-      // Fix global scroll target for Chrome and Safari
-      if (target === window.document.documentElement || target === window.document.body) {
-        target = window;
-      }
-
-      return target;
+      return { continuous };
     },
 
     getScroll() {
@@ -477,21 +441,6 @@ export default {
       };
 
       return scrollState;
-    },
-
-    addListeners() {
-      this.listenerTarget = this.getListenerTarget();
-      this.listenerTarget.addEventListener('resize', this.handleResize);
-    },
-
-    removeListeners() {
-      if (!this.listenerTarget) {
-        return;
-      }
-
-      this.listenerTarget.removeEventListener('resize', this.handleResize);
-
-      this.listenerTarget = null;
     },
 
     scrollToItem(index) {
@@ -520,7 +469,7 @@ export default {
   position: relative;
 }
 
-.vue-recycle-scroller.direction-vertical:not(.page-mode) {
+.vue-recycle-scroller {
   overflow-y: auto;
 }
 
@@ -531,18 +480,18 @@ export default {
   position: relative;
 }
 
-.vue-recycle-scroller.ready .vue-recycle-scroller__item-view {
+.vue-recycle-scroller .vue-recycle-scroller__item-view {
   position: absolute;
   top: 0;
   left: 0;
   will-change: transform;
 }
 
-.vue-recycle-scroller.direction-vertical .vue-recycle-scroller__item-wrapper {
+.vue-recycle-scroller .vue-recycle-scroller__item-wrapper {
   width: 100%;
 }
 
-.vue-recycle-scroller.ready.direction-vertical .vue-recycle-scroller__item-view {
+.vue-recycle-scroller .vue-recycle-scroller__item-view {
   width: 100%;
 }
 </style>

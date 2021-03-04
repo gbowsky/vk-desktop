@@ -157,7 +157,7 @@ export default {
       immediate: true
     },
 
-    direction(value) {
+    direction() {
       this.forceUpdate(true);
     }
   },
@@ -210,7 +210,9 @@ export default {
     },
 
     getItemSize(item, index = undefined) {
-      const id = this.simpleArray ? (index != null ? index : this.items.indexOf(item)) : item[this.keyField];
+      const id = this.simpleArray
+        ? (index != null ? index : this.items.indexOf(item))
+        : item[this.keyField];
       return this.vscrollData.sizes[id] || 0;
     },
 

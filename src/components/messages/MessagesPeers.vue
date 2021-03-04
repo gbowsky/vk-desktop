@@ -42,7 +42,6 @@ import vkapi from 'js/vkapi';
 import store from 'js/store';
 import router from 'js/router';
 
-import Scrolly from '../UI/Scrolly.vue';
 import { RecycleScroller } from '../UI/virtualScroll';
 import Icon from '../UI/Icon.vue';
 import SearchInput from '../UI/SearchInput.vue';
@@ -55,7 +54,6 @@ export default {
   props: ['activeChat'],
 
   components: {
-    Scrolly,
     RecycleScroller,
     Icon,
     SearchInput,
