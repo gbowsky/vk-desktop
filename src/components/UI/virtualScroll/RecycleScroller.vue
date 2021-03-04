@@ -31,16 +31,14 @@
           />
         </div>
       </div>
-
-      <ResizeObserver @notify="handleResize" />
     </div>
   </Scrolly>
 </template>
 
 <script>
 import { reactive } from 'vue';
+import { callWithDelay } from 'js/utils';
 
-import ResizeObserver from './ResizeObserver.vue';
 import Scrolly from '../Scrolly.vue';
 
 let uid = 0;
@@ -87,7 +85,7 @@ export default {
 
     buffer: {
       type: Number,
-      default: 500
+      default: 400
     },
 
     scrollyClass: {
@@ -102,7 +100,6 @@ export default {
   },
 
   components: {
-    ResizeObserver,
     Scrolly
   },
 
@@ -175,20 +172,32 @@ export default {
 
   mounted() {
     this.updateVisibleItems(true);
+
+    this.onResize = callWithDelay(() => {
+      this.updateVisibleItems(false);
+    }, 100);
+  },
+
+  activated() {
+    window.addEventListener('resize', this.onResize);
+  },
+
+  deactivated() {
+    window.removeEventListener('resize', this.onResize);
   },
 
   methods: {
     addView(pool, index, item, key, type) {
       const view = {
         item,
-        position: 0
-      };
-      view.nr = {
-        id: uid++,
-        index,
-        used: true,
-        key,
-        type
+        position: 0,
+        nr: {
+          id: uid++,
+          index,
+          used: true,
+          key,
+          type
+        }
       };
       pool.push(view);
       return view;
@@ -198,20 +207,19 @@ export default {
       const unusedViews = this.$_unusedViews;
       const { type } = view.nr;
       let unusedPool = unusedViews.get(type);
+
       if (!unusedPool) {
         unusedPool = [];
         unusedViews.set(type, unusedPool);
       }
+
       unusedPool.push(view);
+
       if (!fake) {
         view.nr.used = false;
         view.position = -9999;
         this.$_views.delete(view.nr.key);
       }
-    },
-
-    handleResize() {
-      this.updateVisibleItems(false);
     },
 
     onScroll(event) {

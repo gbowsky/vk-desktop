@@ -1,6 +1,6 @@
 <script>
-import { h, reactive, computed, onMounted, onActivated, getCurrentInstance, watch } from 'vue';
-import { getPhotoFromSizes, windowSize } from 'js/utils';
+import { h, reactive, computed, onMounted, onActivated, getCurrentInstance } from 'vue';
+import { getPhotoFromSizes } from 'js/utils';
 import { format, createDateFrom } from 'js/date/utils';
 import { calculatePhotosLayout } from './photosLayout';
 
@@ -120,8 +120,20 @@ export default {
 
     onActivated(calcMaxSize);
 
-    watch(() => windowSize.width, calcMaxWidth);
-    watch(() => windowSize.height, calcMaxHeight);
+    let prevWidth = window.innerWidth;
+    let prevHeight = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+      if (prevWidth !== window.innerWidth) {
+        prevWidth = window.innerWidth;
+        calcMaxWidth();
+      }
+
+      if (prevHeight !== window.innerHeight) {
+        prevHeight = window.innerHeight;
+        calcMaxHeight();
+      }
+    });
 
     const state = reactive({
       width: 0,

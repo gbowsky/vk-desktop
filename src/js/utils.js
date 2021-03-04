@@ -1,6 +1,5 @@
 import fs from 'fs';
 import { EventEmitter } from 'events';
-import { reactive } from 'vue';
 import electron from 'electron';
 import os from 'os';
 import path from 'path';
@@ -423,16 +422,6 @@ export async function downloadFile({ getUrl, progress }) {
     });
   }
 }
-
-export const windowSize = reactive({
-  width: window.innerWidth,
-  height: window.innerHeight
-});
-
-window.addEventListener('resize', () => {
-  windowSize.width = window.innerWidth;
-  windowSize.height = window.innerHeight;
-});
 
 // export function onTransitionEnd(el, anyTarget) {
 //   return new Promise((resolve) => {
