@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { h } from 'vue';
 import { ItemProps, SlotProps } from './props';
 
 /**
@@ -7,15 +7,14 @@ import { ItemProps, SlotProps } from './props';
  */
 
 const Wrapper = {
-  created() {
-    this.shapeKey = this.horizontal ? 'offsetWidth' : 'offsetHeight';
-  },
-
   mounted() {
     this.resizeObserver = new ResizeObserver(() => {
       this.dispatchSizeChange();
     });
+    console.log(this);
     this.resizeObserver.observe(this.$el);
+
+    this.dispatchSizeChange();
   },
 
   // since componet will be reused, so disptach when updated
@@ -30,12 +29,13 @@ const Wrapper = {
 
   methods: {
     getCurrentSize() {
-      return this.$el ? this.$el[this.shapeKey] : 0;
+      return this.$el ? this.$el.offsetHeight : 0;
     },
 
     // tell parent current size identify by unqiue key
     dispatchSizeChange() {
-      this.$parent.$emit(this.event, this.uniqueKey, this.getCurrentSize(), this.hasInitial);
+      console.log(this.$parent);
+      this.$parent.$emit('item_resize', this.uniqueKey, this.getCurrentSize(), this.hasInitial);
     }
   }
 };
@@ -46,12 +46,12 @@ export const Item = {
 
   props: ItemProps,
 
-  render(h) {
-    const { tag, component, extraProps = {}, index, scopedSlots = {}, uniqueKey } = this;
+  render() {
+    const { component, extraProps = {}, index, scopedSlots = {}, uniqueKey } = this;
     extraProps.source = this.source;
     extraProps.index = index;
 
-    return h(tag, {
+    return h('div', {
       key: uniqueKey,
       attrs: {
         role: 'listitem'
@@ -70,9 +70,9 @@ export const Slot = {
   props: SlotProps,
 
   render(h) {
-    const { tag, uniqueKey } = this;
+    const { uniqueKey } = this;
 
-    return h(tag, {
+    return h('div', {
       key: uniqueKey,
       attrs: {
         role: uniqueKey

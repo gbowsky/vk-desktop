@@ -44,10 +44,6 @@ export const VirtualProps = {
     type: Number,
     default: 0
   },
-  pageMode: {
-    type: Boolean,
-    default: false
-  },
   itemTag: {
     type: String,
     default: 'div'
@@ -55,9 +51,6 @@ export const VirtualProps = {
   itemClass: {
     type: String,
     default: ''
-  },
-  itemClassAdd: {
-    type: Function
   },
   itemStyle: {
     type: Object
@@ -70,15 +63,6 @@ export const VirtualProps = {
 export const ItemProps = {
   index: {
     type: Number
-  },
-  event: {
-    type: String
-  },
-  tag: {
-    type: String
-  },
-  horizontal: {
-    type: Boolean
   },
   source: {
     type: Object
@@ -98,16 +82,7 @@ export const ItemProps = {
 };
 
 export const SlotProps = {
-  event: {
-    type: String
-  },
   uniqueKey: {
     type: String
-  },
-  tag: {
-    type: String
-  },
-  horizontal: {
-    type: Boolean
   }
 };

@@ -30,13 +30,6 @@ export default {
     }
   },
 
-  created() {
-    this.installVirtual();
-
-    // listen item size change
-    this.$on('item_resize', this.onItemResized);
-  },
-
   // set back offset when awake from keep-alive
   activated() {
     this.scrollToOffset(this.virtual.offset);
@@ -49,22 +42,10 @@ export default {
     } else if (this.offset) {
       this.scrollToOffset(this.offset);
     }
-
-    // in page mode we bind scroll event to document
-    if (this.pageMode) {
-      this.updatePageModeFront();
-
-      document.addEventListener('scroll', this.onScroll, {
-        passive: false
-      });
-    }
   },
 
   beforeDestroy() {
     this.virtual.destroy();
-    if (this.pageMode) {
-      document.removeEventListener('scroll', this.onScroll);
-    }
   },
 
   methods: {
@@ -78,48 +59,11 @@ export default {
       return this.virtual.sizes.size;
     },
 
-    // return current scroll offset
-    getOffset() {
-      if (this.pageMode) {
-        return document.documentElement.scrollTop || document.body.scrollTop;
-      } else {
-        const { root } = this.$refs;
-        return root ? Math.ceil(root.scrollTop) : 0;
-      }
-    },
-
-    // return client viewport size
-    getClientSize() {
-      const key = 'clientHeight';
-      if (this.pageMode) {
-        return document.documentElement[key] || document.body[key];
-      } else {
-        const { root } = this.$refs;
-        return root ? Math.ceil(root[key]) : 0;
-      }
-    },
-
-    // return all scroll size
-    getScrollSize() {
-      const key = 'scrollHeight';
-      if (this.pageMode) {
-        return document.documentElement[key] || document.body[key];
-      } else {
-        const { root } = this.$refs;
-        return root ? Math.ceil(root[key]) : 0;
-      }
-    },
-
     // set current scroll position to a expectant offset
     scrollToOffset(offset) {
-      if (this.pageMode) {
-        document.body.scrollTop = offset;
-        document.documentElement.scrollTop = offset;
-      } else {
-        const { root } = this.$refs;
-        if (root) {
-          root.scrollTop = offset;
-        }
+      const { root } = this.$refs;
+      if (root) {
+        root.scrollTop = offset;
       }
     },
 
@@ -164,145 +108,12 @@ export default {
       }
     },
 
-    // reset all state back to initial
-    reset() {
-      this.virtual.destroy();
-      this.scrollToOffset(0);
-      this.installVirtual();
-    },
-
     // ----------- public method end -----------
-
-    installVirtual() {
-      this.virtual = new Virtual({
-        slotHeaderSize: 0,
-        slotFooterSize: 0,
-        keeps: this.keeps,
-        estimateSize: this.estimateSize,
-        buffer: Math.round(this.keeps / 3), // recommend for a third of keeps
-        uniqueIds: this.getUniqueIdFromDataSources()
-      }, this.onRangeChanged);
-
-      // sync initial range
-      this.range = this.virtual.getRange();
-    },
-
-    getUniqueIdFromDataSources() {
-      const { dataKey } = this;
-      return this.dataSources.map((dataSource) => (typeof dataKey === 'function' ? dataKey(dataSource) : dataSource[dataKey]));
-    },
-
-    // event called when each item mounted or size changed
-    onItemResized(id, size) {
-      this.virtual.saveSize(id, size);
-      this.$emit('resized', id, size);
-    },
 
     // event called when slot mounted or size changed
     onSlotResized(type, size, hasInit) {
       if (hasInit) {
         this.virtual.handleSlotSizeChange();
       }
-    },
-
-    // here is the rerendering entry
-    onRangeChanged(range) {
-      this.range = range;
-    },
-
-    onScroll(evt) {
-      const offset = this.getOffset();
-      const clientSize = this.getClientSize();
-      const scrollSize = this.getScrollSize();
-
-      // iOS scroll-spring-back behavior will make direction mistake
-      if (offset < 0 || (offset + clientSize > scrollSize + 1) || !scrollSize) {
-        return;
-      }
-
-      this.virtual.handleScroll(offset);
-      this.emitEvent(offset, clientSize, scrollSize, evt);
-    },
-
-    // emit event in special position
-    emitEvent(offset, clientSize, scrollSize, evt) {
-      this.$emit('scroll', evt, this.virtual.getRange());
-
-      if (this.virtual.isFront() && !!this.dataSources.length && (offset - this.topThreshold <= 0)) {
-        this.$emit('totop');
-      } else if (this.virtual.isBehind() && (offset + clientSize + this.bottomThreshold >= scrollSize)) {
-        this.$emit('tobottom');
-      }
-    },
-
-    // get the real render slots based on range data
-    // in-place patch strategy will try to reuse components as possible
-    // so those components that are reused will not trigger lifecycle mounted
-    getRenderSlots(h) {
-      const slots = [];
-      const { start, end } = this.range;
-      const { dataSources, dataKey, itemClass, itemTag, itemStyle, extraProps, dataComponent, itemScopedSlots } = this;
-      for (let index = start; index <= end; index++) {
-        const dataSource = dataSources[index];
-        if (dataSource) {
-          const uniqueKey = typeof dataKey === 'function' ? dataKey(dataSource) : dataSource[dataKey];
-          if (typeof uniqueKey === 'string' || typeof uniqueKey === 'number') {
-            slots.push(h(Item, {
-              props: {
-                index,
-                tag: itemTag,
-                event: 'item_resize',
-                uniqueKey,
-                source: dataSource,
-                extraProps,
-                component: dataComponent,
-                scopedSlots: itemScopedSlots
-              },
-              style: itemStyle,
-              class: `${itemClass}${this.itemClassAdd ? ' ' + this.itemClassAdd(index) : ''}`
-            }));
-          } else {
-            console.warn(`Cannot get the data-key '${dataKey}' from data-sources.`);
-          }
-        } else {
-          console.warn(`Cannot get the index '${index}' from data-sources.`);
-        }
-      }
-      return slots;
     }
-  },
-
-  // render function, a closer-to-the-compiler alternative to templates
-  // https://vuejs.org/v2/guide/render-function.html#The-Data-Object-In-Depth
-  render(h) {
-    const { padFront, padBehind } = this.range;
-
-    return h('div', {
-      ref: 'root',
-      on: {
-        // & = .passive
-        '&scroll': this.onScroll
-      }
-    }, [
-      // main list
-      h('div', {
-        class: 'wrapClass',
-        attrs: {
-          role: 'group'
-        },
-        style: {
-          padding: `${padFront}px 0px ${padBehind}px`
-        }
-      }, this.getRenderSlots(h)),
-
-      // an empty element use to scroll to bottom
-      h('div', {
-        ref: 'shepherd',
-        style: {
-          width: '100%',
-          height: '0px'
-        }
-      })
-    ]);
-  }
 };
