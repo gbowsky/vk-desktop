@@ -8,7 +8,6 @@
   >
     <div
       ref="root"
-      v-observe-visibility="handleVisibilityChange"
       class="vue-recycle-scroller"
       :class="{ ready, 'direction-vertical': true }"
     >
@@ -42,13 +41,11 @@
 
 <script>
 import { reactive } from 'vue';
-import ObserveVisibility from './observeVisibility';
 import { scrollParent } from './common';
 
 import ResizeObserver from './resizeObserver.vue';
 import Scrolly from '../Scrolly.vue';
 
-const ITEMS_LIMIT = 1000;
 let uid = 0;
 
 function getValFromKey(obj, key) {
@@ -93,12 +90,7 @@ export default {
 
     buffer: {
       type: Number,
-      default: 200
-    },
-
-    emitUpdate: {
-      type: Boolean,
-      default: false
+      default: 500
     },
 
     scrollyClass: {
@@ -117,11 +109,7 @@ export default {
     Scrolly
   },
 
-  directives: {
-    ObserveVisibility
-  },
-
-  emits: ['visible', 'hidden', 'update', 'scroll'],
+  emits: ['update', 'scroll'],
 
   data: () => ({
     pool: [],
@@ -266,19 +254,6 @@ export default {
       }
     },
 
-    handleVisibilityChange(isVisible, entry) {
-      if (this.ready) {
-        if (isVisible || entry.boundingClientRect.width !== 0 || entry.boundingClientRect.height !== 0) {
-          this.$emit('visible');
-          requestAnimationFrame(() => {
-            this.updateVisibleItems(false);
-          });
-        } else {
-          this.$emit('hidden');
-        }
-      }
-    },
-
     updateVisibleItems(checkItem, checkPositionDiff = false) {
       const { itemSize } = this;
       const minItemSize = this.$_computedMinItemSize;
@@ -359,10 +334,6 @@ export default {
 
           totalSize = count * itemSize;
         }
-      }
-
-      if (endIndex - startIndex > ITEMS_LIMIT) {
-        this.itemsLimitError();
       }
 
       this.totalSize = totalSize;
@@ -478,8 +449,6 @@ export default {
       this.$_startIndex = startIndex;
       this.$_endIndex = endIndex;
 
-      if (this.emitUpdate) this.$emit('update', startIndex, endIndex);
-
       // After the user has finished scrolling
       // Sort views so text selection is correct
       clearTimeout(this.$_sortTimer);
@@ -493,9 +462,10 @@ export default {
     getListenerTarget() {
       let target = scrollParent(this.$el);
       // Fix global scroll target for Chrome and Safari
-      if (window.document && (target === window.document.documentElement || target === window.document.body)) {
+      if (target === window.document.documentElement || target === window.document.body) {
         target = window;
       }
+
       return target;
     },
 
@@ -536,14 +506,6 @@ export default {
 
     scrollToPosition(position) {
       this.$el.scrollTop = position;
-    },
-
-    itemsLimitError() {
-      setTimeout(() => {
-        console.log('It seems the scroller element isn\'t scrolling, so it tries to render all the items at once.', 'Scroller:', this.$el);
-        console.log('Make sure the scroller has a fixed height (or width) and \'overflow-y\' (or \'overflow-x\') set to \'auto\' so it can scroll correctly and only render the items visible in the scroll viewport.');
-      });
-      throw new Error('Rendered items limit reached');
     },
 
     sortViews() {
