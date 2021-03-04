@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import { h, nextTick } from 'vue';
 
 const styles = {
   container: {
@@ -7,12 +7,12 @@ const styles = {
 };
 
 export default {
-  name: 'auto-virtual-scroll-list',
   props: {
     totalHeight: { type: Number, required: true },
     defaultHeight: { type: Number, required: true },
     extraItems: { type: Number, default: 1 }
   },
+
   data() {
     return {
       offset: 0, // items offset
@@ -21,6 +21,7 @@ export default {
       numberOfItems: false
     };
   },
+
   methods: {
     /** Reset component (variables and scroll) */
     reset() {
@@ -31,14 +32,10 @@ export default {
       this.$refs.container.scrollTop = 0; // reset scroll
     },
     calculateSpaceBefore() {
-      const {
-        scrollTop,
-        heights,
-        defaultHeight
-      } = this;
+      const { scrollTop, heights, defaultHeight } = this;
       let firstItemIndex = 0;
       let spaceBefore = 0;
-      // eslint-disable-next-line no-constant-condition
+
       while (true) {
         const itemHeight = heights[firstItemIndex] || defaultHeight;
         if (spaceBefore + itemHeight > scrollTop) break;
@@ -51,13 +48,13 @@ export default {
     },
     calculateItems(firstItemIndex, paddingTop) {
       const {
-        $slots: { default: defaultItems = [] },
         heights,
         defaultHeight,
         totalHeight,
         extraItems,
         scrollTop
       } = this;
+      const defaultItems = this.$slots.default();
       const items = [];
       let heightAcc = paddingTop;
       let lastItemIndex = firstItemIndex;
@@ -79,19 +76,16 @@ export default {
       return { lastItemIndex, items };
     },
     calculateSpaceAfter(lastItemIndex) {
-      const {
-        $slots: { default: defaultItems = [] },
-        heights,
-        defaultHeight
-      } = this;
+      const { $slots, heights, defaultHeight } = this;
 
-      return defaultItems
+      return $slots.default()
         .slice(lastItemIndex)
         .map((x, i) => heights[i + lastItemIndex] || defaultHeight)
         .reduce((a, b) => a + b, 0);
     },
-    readItemsHeight() {
-      const { $slots: { default: defaultItems = [] }, numberOfItems } = this;
+    async readItemsHeight() {
+      const { numberOfItems } = this;
+      const defaultItems = this.$slots.default();
       // if number of items is unknown set it
       if (!numberOfItems) this.numberOfItems = defaultItems.length;
       // else if number of items changed reset the component
@@ -99,41 +93,39 @@ export default {
 
       // nextTick -> need to wait for the offset to be reloaded if scroll
       // changed (which happens at render)
-      Vue.nextTick(() => {
-        const { $el: { children: htmlChildren }, offset, defaultHeight } = this;
-        const htmlAsArray = Array.from(htmlChildren);
-        const children = htmlAsArray.slice(1, htmlAsArray.length - 1); // remove empty divs
-        const newHeights = this.heights.slice(0); // recomputing heights
-        // scrollDiff is used for backward scrolling (where not all items before have known height)
-        let scrollDiff = 0;
-        let hasChange = false;
+      await nextTick();
 
-        children.forEach((child, i) => {
-          const index = i + offset;
-          // if item has been set or updated
-          if (newHeights[index] !== child.offsetHeight) {
-            // if item is in the space before items, update the scroll
-            if (index <= offset) {
-              scrollDiff += child.offsetHeight - (newHeights[index] || defaultHeight);
-            }
-            newHeights[index] = child.offsetHeight;
-            hasChange = true;
+      const { $el: { children: htmlChildren }, offset, defaultHeight } = this;
+      const htmlAsArray = Array.from(htmlChildren);
+      const children = htmlAsArray.slice(1, htmlAsArray.length - 1); // remove empty divs
+      const newHeights = this.heights.slice(0); // recomputing heights
+      // scrollDiff is used for backward scrolling (where not all items before have known height)
+      let scrollDiff = 0;
+      let hasChange = false;
+
+      children.forEach((child, i) => {
+        const index = i + offset;
+        // if item has been set or updated
+        if (newHeights[index] !== child.offsetHeight) {
+          // if item is in the space before items, update the scroll
+          if (index <= offset) {
+            scrollDiff += child.offsetHeight - (newHeights[index] || defaultHeight);
           }
-        });
-
-        // trigger re-render
-        if (hasChange) {
-          if (this.heights[offset + 1]) this.$refs.container.scrollTop += scrollDiff;
-          this.heights = newHeights;
+          newHeights[index] = child.offsetHeight;
+          hasChange = true;
         }
       });
+
+      // trigger re-render
+      if (hasChange) {
+        if (this.heights[offset + 1]) this.$refs.container.scrollTop += scrollDiff;
+        this.heights = newHeights;
+      }
     },
 
     setIndex(index, recursion = true) {
-      const {
-        $slots: { default: defaultItems = [] },
-        defaultHeight, heights
-      } = this;
+      const { defaultHeight, heights } = this;
+      const defaultItems = this.$slots.default();
       const parsedIndex = index >= defaultItems.length ? defaultItems.length - 1 : index;
       let scrollTop = 1;
       for (let i = 0; i < parsedIndex; i += 1) scrollTop += heights[i] || defaultHeight;
@@ -158,7 +150,7 @@ export default {
     this.readItemsHeight();
     this.$emit('updated');
   },
-  render(h) { // eslint-disable-line no-unused-vars
+  render() {
     const { spaceBefore, firstItemIndex } = this.calculateSpaceBefore();
     const { items, lastItemIndex } = this.calculateItems(firstItemIndex, spaceBefore);
     const spaceAfter = this.calculateSpaceAfter(lastItemIndex);
