@@ -3,8 +3,8 @@
  */
 
 const DIRECTION_TYPE = {
-  FRONT: 'FRONT', // scroll up or left
-  BEHIND: 'BEHIND' // scroll down or right
+  FRONT: 'FRONT', // scroll up
+  BEHIND: 'BEHIND' // scroll down
 };
 const CALC_TYPE = {
   INIT: 'INIT',

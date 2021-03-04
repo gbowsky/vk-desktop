@@ -1,29 +1,14 @@
-/**
- * virtual list default component
- */
-
 import Vue from 'vue';
 import Virtual from './virtual';
 import { Item, Slot } from './item';
 import { VirtualProps } from './props';
 
-const EVENT_TYPE = {
-  ITEM: 'item_resize',
-  SLOT: 'slot_resize'
-};
-const SLOT_TYPE = {
-  HEADER: 'header', // string value also use for aria role attribute
-  FOOTER: 'footer'
-};
-
-const VirtualList = Vue.component('VirtualList', {
+export default {
   props: VirtualProps,
 
-  data() {
-    return {
-      range: null
-    };
-  },
+  data: () => ({
+    range: null
+  }),
 
   watch: {
     'dataSources.length'() {
@@ -46,18 +31,10 @@ const VirtualList = Vue.component('VirtualList', {
   },
 
   created() {
-    this.isHorizontal = this.direction === 'horizontal';
-    this.directionKey = this.isHorizontal ? 'scrollLeft' : 'scrollTop';
-
     this.installVirtual();
 
     // listen item size change
-    this.$on(EVENT_TYPE.ITEM, this.onItemResized);
-
-    // listen slot size change
-    if (this.$slots.header || this.$slots.footer) {
-      this.$on(EVENT_TYPE.SLOT, this.onSlotResized);
-    }
+    this.$on('item_resize', this.onItemResized);
   },
 
   // set back offset when awake from keep-alive
@@ -104,16 +81,16 @@ const VirtualList = Vue.component('VirtualList', {
     // return current scroll offset
     getOffset() {
       if (this.pageMode) {
-        return document.documentElement[this.directionKey] || document.body[this.directionKey];
+        return document.documentElement.scrollTop || document.body.scrollTop;
       } else {
         const { root } = this.$refs;
-        return root ? Math.ceil(root[this.directionKey]) : 0;
+        return root ? Math.ceil(root.scrollTop) : 0;
       }
     },
 
     // return client viewport size
     getClientSize() {
-      const key = this.isHorizontal ? 'clientWidth' : 'clientHeight';
+      const key = 'clientHeight';
       if (this.pageMode) {
         return document.documentElement[key] || document.body[key];
       } else {
@@ -124,7 +101,7 @@ const VirtualList = Vue.component('VirtualList', {
 
     // return all scroll size
     getScrollSize() {
-      const key = this.isHorizontal ? 'scrollWidth' : 'scrollHeight';
+      const key = 'scrollHeight';
       if (this.pageMode) {
         return document.documentElement[key] || document.body[key];
       } else {
@@ -136,12 +113,12 @@ const VirtualList = Vue.component('VirtualList', {
     // set current scroll position to a expectant offset
     scrollToOffset(offset) {
       if (this.pageMode) {
-        document.body[this.directionKey] = offset;
-        document.documentElement[this.directionKey] = offset;
+        document.body.scrollTop = offset;
+        document.documentElement.scrollTop = offset;
       } else {
         const { root } = this.$refs;
         if (root) {
-          root[this.directionKey] = offset;
+          root.scrollTop = offset;
         }
       }
     },
@@ -161,7 +138,7 @@ const VirtualList = Vue.component('VirtualList', {
     scrollToBottom() {
       const { shepherd } = this.$refs;
       if (shepherd) {
-        const offset = shepherd[this.isHorizontal ? 'offsetLeft' : 'offsetTop'];
+        const offset = shepherd.offsetTop;
         this.scrollToOffset(offset);
 
         // check if it's really scrolled to the bottom
@@ -182,7 +159,7 @@ const VirtualList = Vue.component('VirtualList', {
       if (root) {
         const rect = root.getBoundingClientRect();
         const { defaultView } = root.ownerDocument;
-        const offsetFront = this.isHorizontal ? (rect.left + defaultView.pageXOffset) : (rect.top + defaultView.pageYOffset);
+        const offsetFront = (rect.top + defaultView.pageYOffset);
         this.virtual.updateParam('slotHeaderSize', offsetFront);
       }
     },
@@ -223,12 +200,6 @@ const VirtualList = Vue.component('VirtualList', {
 
     // event called when slot mounted or size changed
     onSlotResized(type, size, hasInit) {
-      if (type === SLOT_TYPE.HEADER) {
-        this.virtual.updateParam('slotHeaderSize', size);
-      } else if (type === SLOT_TYPE.FOOTER) {
-        this.virtual.updateParam('slotFooterSize', size);
-      }
-
       if (hasInit) {
         this.virtual.handleSlotSizeChange();
       }
@@ -270,7 +241,7 @@ const VirtualList = Vue.component('VirtualList', {
     getRenderSlots(h) {
       const slots = [];
       const { start, end } = this.range;
-      const { dataSources, dataKey, itemClass, itemTag, itemStyle, isHorizontal, extraProps, dataComponent, itemScopedSlots } = this;
+      const { dataSources, dataKey, itemClass, itemTag, itemStyle, extraProps, dataComponent, itemScopedSlots } = this;
       for (let index = start; index <= end; index++) {
         const dataSource = dataSources[index];
         if (dataSource) {
@@ -280,8 +251,7 @@ const VirtualList = Vue.component('VirtualList', {
               props: {
                 index,
                 tag: itemTag,
-                event: EVENT_TYPE.ITEM,
-                horizontal: isHorizontal,
+                event: 'item_resize',
                 uniqueKey,
                 source: dataSource,
                 extraProps,
@@ -305,59 +275,34 @@ const VirtualList = Vue.component('VirtualList', {
   // render function, a closer-to-the-compiler alternative to templates
   // https://vuejs.org/v2/guide/render-function.html#The-Data-Object-In-Depth
   render(h) {
-    const { header, footer } = this.$slots;
     const { padFront, padBehind } = this.range;
-    const { isHorizontal, pageMode, rootTag, wrapTag, wrapClass, wrapStyle, headerTag, headerClass, headerStyle, footerTag, footerClass, footerStyle } = this;
-    const paddingStyle = { padding: isHorizontal ? `0px ${padBehind}px 0px ${padFront}px` : `${padFront}px 0px ${padBehind}px` };
-    const wrapperStyle = wrapStyle ? ({ ...wrapStyle, ...paddingStyle }) : paddingStyle;
 
-    return h(rootTag, {
+    return h('div', {
       ref: 'root',
       on: {
-        '&scroll': !pageMode && this.onScroll
+        // & = .passive
+        '&scroll': this.onScroll
       }
     }, [
-      // header slot
-      header ? h(Slot, {
-        class: headerClass,
-        style: headerStyle,
-        props: {
-          tag: headerTag,
-          event: EVENT_TYPE.SLOT,
-          uniqueKey: SLOT_TYPE.HEADER
-        }
-      }, header) : null,
-
       // main list
-      h(wrapTag, {
-        class: wrapClass,
+      h('div', {
+        class: 'wrapClass',
         attrs: {
           role: 'group'
         },
-        style: wrapperStyle
-      }, this.getRenderSlots(h)),
-
-      // footer slot
-      footer ? h(Slot, {
-        class: footerClass,
-        style: footerStyle,
-        props: {
-          tag: footerTag,
-          event: EVENT_TYPE.SLOT,
-          uniqueKey: SLOT_TYPE.FOOTER
+        style: {
+          padding: `${padFront}px 0px ${padBehind}px`
         }
-      }, footer) : null,
+      }, this.getRenderSlots(h)),
 
       // an empty element use to scroll to bottom
       h('div', {
         ref: 'shepherd',
         style: {
-          width: isHorizontal ? '0px' : '100%',
-          height: isHorizontal ? '100%' : '0px'
+          width: '100%',
+          height: '0px'
         }
       })
     ]);
   }
-});
-
-export default VirtualList;
+};

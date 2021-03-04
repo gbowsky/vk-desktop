@@ -28,10 +28,6 @@ export const VirtualProps = {
     default: 50
   },
 
-  direction: {
-    type: String,
-    default: 'vertical' // the other value is horizontal
-  },
   start: {
     type: Number,
     default: 0
@@ -52,21 +48,6 @@ export const VirtualProps = {
     type: Boolean,
     default: false
   },
-  rootTag: {
-    type: String,
-    default: 'div'
-  },
-  wrapTag: {
-    type: String,
-    default: 'div'
-  },
-  wrapClass: {
-    type: String,
-    default: ''
-  },
-  wrapStyle: {
-    type: Object
-  },
   itemTag: {
     type: String,
     default: 'div'
@@ -79,28 +60,6 @@ export const VirtualProps = {
     type: Function
   },
   itemStyle: {
-    type: Object
-  },
-  headerTag: {
-    type: String,
-    default: 'div'
-  },
-  headerClass: {
-    type: String,
-    default: ''
-  },
-  headerStyle: {
-    type: Object
-  },
-  footerTag: {
-    type: String,
-    default: 'div'
-  },
-  footerClass: {
-    type: String,
-    default: ''
-  },
-  footerStyle: {
     type: Object
   },
   itemScopedSlots: {

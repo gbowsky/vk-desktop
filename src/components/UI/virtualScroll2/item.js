@@ -1,10 +1,10 @@
+import Vue from 'vue';
+import { ItemProps, SlotProps } from './props';
+
 /**
  * item and slot component both use similar wrapper
  * we need to know their size change at any time
  */
-
-import Vue from 'vue';
-import { ItemProps, SlotProps } from './props';
 
 const Wrapper = {
   created() {
@@ -12,12 +12,10 @@ const Wrapper = {
   },
 
   mounted() {
-    if (typeof ResizeObserver !== 'undefined') {
-      this.resizeObserver = new ResizeObserver(() => {
-        this.dispatchSizeChange();
-      });
-      this.resizeObserver.observe(this.$el);
-    }
+    this.resizeObserver = new ResizeObserver(() => {
+      this.dispatchSizeChange();
+    });
+    this.resizeObserver.observe(this.$el);
   },
 
   // since componet will be reused, so disptach when updated
@@ -26,10 +24,8 @@ const Wrapper = {
   },
 
   beforeDestroy() {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
-      this.resizeObserver = null;
-    }
+    this.resizeObserver.disconnect();
+    this.resizeObserver = null;
   },
 
   methods: {
@@ -45,7 +41,7 @@ const Wrapper = {
 };
 
 // wrapping for item
-export const Item = Vue.component('VirtualListItem', {
+export const Item = {
   mixins: [Wrapper],
 
   props: ItemProps,
@@ -65,10 +61,10 @@ export const Item = Vue.component('VirtualListItem', {
       scopedSlots
     })]);
   }
-});
+};
 
 // wrapping for slot
-export const Slot = Vue.component('VirtualListSlot', {
+export const Slot = {
   mixins: [Wrapper],
 
   props: SlotProps,
@@ -83,4 +79,4 @@ export const Slot = Vue.component('VirtualListSlot', {
       }
     }, this.$slots.default);
   }
-});
+};
