@@ -13,14 +13,19 @@
       :lock="lockScroll"
       @scroll="onScroll"
     >
-      <MessagesPeer
-        v-for="{ peer, msg } of peersList"
-        :key="peer.id"
-        :peer="peer"
-        :msg="msg"
-        :activeChat="activeChat"
-        :nowDate="nowDate"
-      />
+      <VirtualScroller
+        :items="peersList"
+        :itemHeight="66"
+        v-slot="{ peer, msg }"
+      >
+        <MessagesPeer
+          :key="peer.id"
+          :peer="peer"
+          :msg="msg"
+          :activeChat="activeChat"
+          :nowDate="nowDate"
+        />
+      </VirtualScroller>
     </Scrolly>
 
     <BottomMenu />
@@ -35,6 +40,7 @@ import vkapi from 'js/vkapi';
 import store from 'js/store';
 import router from 'js/router';
 
+import VirtualScroller from '../UI/virtualScroll4';
 import Scrolly from '../UI/Scrolly.vue';
 import Icon from '../UI/Icon.vue';
 import SearchInput from '../UI/SearchInput.vue';
@@ -47,6 +53,7 @@ export default {
   props: ['activeChat'],
 
   components: {
+    VirtualScroller,
     Scrolly,
     Icon,
     SearchInput,

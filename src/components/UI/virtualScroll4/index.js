@@ -1,2 +1,3 @@
-// module.exports = require("./VirtualizedList.vue");
-module.exports = require('./VirtualizedListRender.js');
+import VirtualizedListRender from './VirtualizedListRender';
+
+export default VirtualizedListRender;

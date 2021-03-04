@@ -1,40 +1,7 @@
+import { h } from 'vue';
+
 export default {
-  name: 'VirtualizedList',
-
   props: {
-
-    /**
-         * The type of element of the outer container
-         */
-    outerContainerEl: {
-      type: String,
-      default: 'div'
-    },
-
-    /**
-         * The class of element of the outer container
-         */
-    outerContainerClass: {
-      type: String,
-      default: 'vue-virtualized-list__scroll'
-    },
-
-    /**
-         * The type of element of the inner container
-         */
-    innerContainerEl: {
-      type: String,
-      default: 'div'
-    },
-
-    /**
-         * The class of element of the inner container
-         */
-    innerContainerClass: {
-      type: String,
-      default: 'vue-virtualized-list'
-    },
-
     items: {
       type: Array,
       required: true
@@ -45,10 +12,10 @@ export default {
     },
 
     /**
-         * Indicates the amount of elements not visible to render. They are kind of useful
-         * if the user scrolls very fast or in similar cases.
-         * In my tests 5 seems to be ideal most of the times
-         */
+     * Indicates the amount of elements not visible to render. They are kind of useful
+     * if the user scrolls very fast or in similar cases.
+     * In my tests 5 seems to be ideal most of the times
+     */
     bench: {
       type: Number,
       default: 5
@@ -75,9 +42,9 @@ export default {
 
   watch: {
     /**
-         * If the height of the items changes we need to recalculate the visible items and
-         * re-render if needed
-         */
+     * If the height of the items changes we need to recalculate the visible items and
+     * re-render if needed
+     */
     itemHeight() {
       this.update();
     }
@@ -90,15 +57,15 @@ export default {
     this.firstItemToRender = 0;
     this.lastItemToRender = Math.floor(this.$el.clientHeight / this.itemHeight);
 
-    this.$el.addEventListener('scroll', this.onScroll, false);
+    this.$el.addEventListener('scroll', this.onScroll, { passive: true });
   },
 
   methods: {
 
     /**
-         * Triggers an update.
-         * Fake a scroll to recalculate the visible items
-         */
+     * Triggers an update.
+     * Fake a scroll to recalculate the visible items
+     */
     update() {
       this.$nextTick(() => {
         this.onScroll({
@@ -110,8 +77,8 @@ export default {
     },
 
     /**
-         * @param evt - the scroll event
-         */
+     * @param evt - the scroll event
+     */
     onScroll(evt) {
       this.scrollTop = evt.target.scrollTop;
       this.firstItemToRender = Math.floor(this.scrollTop / this.itemHeight);
@@ -119,9 +86,9 @@ export default {
     },
 
     /**
-         * Return the VNode of the elements to render
-         * @param {Function} h - Vue render function
-         */
+     * Return the VNode of the elements to render
+     * @param {Function} h - Vue render function
+     */
     getRenderedItems(h) {
       const toRender = this.items.slice(this.firstToRender, this.lastToRender);
       return toRender.map((item, i) => h('div', {
@@ -131,26 +98,31 @@ export default {
           right: 0,
           top: (this.firstToRender + i) * this.itemHeight + 'px'
         }
-      }, this.$scopedSlots.default(item)));
+      }, this.$slots.default(item)));
     }
   },
 
-  render(h) {
+  render() {
     const list = this.getRenderedItems(h);
-    const renderScroll = h(this.innerContainerEl, {
-      class: this.innerContainerClass,
-      style: { display: 'block',
-        height: this.items.length * this.itemHeight + 'px' }
+
+    const inner = h('div', {
+      class: 'vue-virtualized-list',
+      style: {
+        display: 'block',
+        height: this.items.length * this.itemHeight + 'px'
+      }
     }, list);
-    const renderList = h(this.outerContainerEl, {
-      class: this.outerContainerClass,
+
+    const outer = h('div', {
+      class: 'vue-virtualized-list__scroll',
       style: {
         height: '100%',
         overflow: 'auto',
         position: 'relative',
         display: 'block'
       }
-    }, [renderScroll]);
-    return renderList;
+    }, [inner])
+
+    return outer;
   }
 };
