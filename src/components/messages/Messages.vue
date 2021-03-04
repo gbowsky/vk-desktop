@@ -19,7 +19,7 @@ import { reactive, computed, toRefs } from 'vue';
 import store from 'js/store';
 import router from 'js/router';
 
-import MessagesPeers from './MessagesPeers4.vue';
+import MessagesPeers from './MessagesPeers.vue';
 
 export default {
   components: {

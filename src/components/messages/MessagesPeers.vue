@@ -43,7 +43,7 @@ import store from 'js/store';
 import router from 'js/router';
 
 import Scrolly from '../UI/Scrolly.vue';
-import { RecycleScroller } from '../UI/virtualScroll1';
+import { RecycleScroller } from '../UI/virtualScroll';
 import Icon from '../UI/Icon.vue';
 import SearchInput from '../UI/SearchInput.vue';
 import AccountManager from '../menu/AccountManager.vue';
